@@ -158,13 +158,20 @@
     border-color:var(--blue-500);
     box-shadow: inset 8px 8px 18px var(--shadow-dark), inset -8px -8px 18px var(--shadow-light), 0 0 0 4px var(--blue-glow);
   }
+  #slotEmpty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    width:100%;
+  }
   .slot-icon{
     width:56px; height:56px;
     border-radius:16px;
     background:var(--bg);
     box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
     display:flex; align-items:center; justify-content:center;
-    margin-bottom:16px;
+    margin:0 auto 16px;
   }
   .slot-icon svg{width:26px; height:26px; stroke:var(--navy-700);}
   .slot h3{font-size:16px; font-weight:600; color:var(--navy-950); margin-bottom:4px;}
@@ -505,6 +512,7 @@
   const DEFAULT_EXT = 'jpg';
   const PREVIEW_MODE = 'image'; // image | video | audio | file
   const ACTIVE_KEY = 'img';
+  const BRAND_PREFIX = 'image'; // clean path segment on OUR OWN domain, e.g. "image"
 
   // ---------- Bottom nav (shows every OTHER page) ----------
   const PAGES = [
@@ -633,8 +641,12 @@
 
   function buildCleanUrl(data, file){
     const ext = resolveExtension(file, data);
-    const base = data.secure_url.replace(/\.[a-zA-Z0-9]+(\?.*)?$/, '');
-    return base + '.' + ext;
+    // public_id is Cloudinary's internal identifier, e.g. "iir6olupd5hwxuvsxbal"
+    // (no cloud name, no "/upload", no version number). We serve it back
+    // through OUR OWN domain via a worker route that proxies Cloudinary
+    // behind the scenes — so the visible link never shows Cloudinary at all.
+    const publicId = data.public_id;
+    return window.location.origin + '/' + BRAND_PREFIX + '/' + publicId + '.' + ext;
   }
 
   function uploadToCloudinary(file){
