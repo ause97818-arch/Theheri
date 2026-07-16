@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sticker to URL — Linkify</title>
+<meta name="description" content="Turn any sticker into a permanent shareable link.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#e9f0fa;
+    --bg-2:#f4f8fd;
+    --surface:#eef3fa;
+    --navy-950:#071634;
+    --navy-900:#0b3d91;
+    --navy-700:#134fb8;
+    --blue-500:#2f5fff;
+    --blue-glow:rgba(47,95,255,.32);
+    --shadow-light:#ffffff;
+    --shadow-dark:#c3d1e6;
+    --text-primary:#0b1b33;
+    --text-muted:#5c6b85;
+    --success:#1a9e6d;
+    --radius-lg:28px;
+    --radius-md:18px;
+    --radius-sm:12px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:linear-gradient(160deg,var(--bg) 0%,var(--bg-2) 100%);
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 18px 120px;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+
+  /* ---------- Top Bar ---------- */
+  .topbar{
+    width:100%;
+    max-width:520px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    margin-bottom:28px;
+  }
+  .back-btn{
+    width:48px; height:48px;
+    border-radius:50%;
+    border:none;
+    background:var(--bg);
+    box-shadow: 7px 7px 14px var(--shadow-dark), -7px -7px 14px var(--shadow-light);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition:box-shadow .15s ease, transform .15s ease;
+    flex-shrink:0;
+  }
+  .back-btn:active{
+    box-shadow: inset 5px 5px 10px var(--shadow-dark), inset -5px -5px 10px var(--shadow-light);
+    transform:scale(.96);
+  }
+  .back-btn svg{width:20px; height:20px; stroke:var(--navy-900);}
+  .topbar-title{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:-.02em;
+    color:var(--navy-950);
+  }
+  .topbar-sub{
+    font-size:12.5px;
+    color:var(--text-muted);
+    font-weight:500;
+  }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    width:100%;
+    max-width:520px;
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .eyebrow{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--navy-700);
+    background:rgba(47,95,255,.08);
+    padding:6px 14px;
+    border-radius:999px;
+    margin-bottom:16px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--blue-500); box-shadow:0 0 8px var(--blue-glow);}
+  .hero h1{
+    font-size:clamp(26px,5vw,34px);
+    font-weight:700;
+    letter-spacing:-.02em;
+    line-height:1.15;
+    color:var(--navy-950);
+  }
+  .hero h1 span{color:var(--blue-500);}
+  .hero p{
+    margin-top:10px;
+    font-size:14.5px;
+    color:var(--text-muted);
+    font-weight:500;
+  }
+
+  /* ---------- Card ---------- */
+  .card{
+    width:100%;
+    max-width:520px;
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(18px) saturate(160%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:var(--radius-lg);
+    padding:26px;
+    box-shadow: 18px 18px 40px rgba(11,27,51,.10), -12px -12px 30px rgba(255,255,255,.75);
+  }
+
+  /* ---------- Upload Slot (signature element) ---------- */
+  .slot{
+    position:relative;
+    border-radius:var(--radius-md);
+    background:var(--bg);
+    box-shadow: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light);
+    padding:38px 20px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+    cursor:pointer;
+    transition:box-shadow .2s ease;
+    border:2px dashed transparent;
+  }
+  .slot::before{
+    content:'';
+    position:absolute;
+    top:14px; left:50%;
+    transform:translateX(-50%);
+    width:52px; height:5px;
+    border-radius:4px;
+    background:var(--shadow-dark);
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,.15);
+  }
+  .slot.drag-over{
+    border-color:var(--blue-500);
+    box-shadow: inset 8px 8px 18px var(--shadow-dark), inset -8px -8px 18px var(--shadow-light), 0 0 0 4px var(--blue-glow);
+  }
+  .slot-icon{
+    width:56px; height:56px;
+    border-radius:16px;
+    background:var(--bg);
+    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:16px;
+  }
+  .slot-icon svg{width:26px; height:26px; stroke:var(--navy-700);}
+  .slot h3{font-size:16px; font-weight:600; color:var(--navy-950); margin-bottom:4px;}
+  .slot p{font-size:13px; color:var(--text-muted);}
+  .slot input[type=file]{display:none;}
+
+  /* preview */
+  .preview-wrap{
+    display:none;
+    width:100%;
+    align-items:center;
+    gap:14px;
+    text-align:left;
+  }
+  .preview-wrap.active{display:flex;}
+  .preview-thumb{
+    width:64px; height:64px;
+    border-radius:14px;
+    object-fit:cover;
+    box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+    flex-shrink:0;
+    background:var(--bg);
+  }
+  .preview-icon-box{
+    width:64px; height:64px;
+    border-radius:14px;
+    background:var(--bg);
+    box-shadow: 4px 4px 10px var(--shadow-dark), -4px -4px 10px var(--shadow-light);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .preview-icon-box svg{width:26px; height:26px; stroke:var(--navy-700);}
+  .preview-info{flex:1; min-width:0;}
+  .preview-name{font-size:13.5px; font-weight:600; color:var(--navy-950); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .preview-size{font-size:12px; color:var(--text-muted); margin-top:2px;}
+  .preview-clear{
+    width:32px; height:32px;
+    border-radius:50%;
+    border:none;
+    background:var(--bg);
+    box-shadow: 3px 3px 7px var(--shadow-dark), -3px -3px 7px var(--shadow-light);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .preview-clear svg{width:14px; height:14px; stroke:var(--text-muted);}
+  audio.preview-audio{width:100%; margin-top:2px;}
+
+  /* ---------- Get Link Button ---------- */
+  .action-btn{
+    width:100%;
+    margin-top:22px;
+    padding:16px;
+    border:none;
+    border-radius:var(--radius-sm);
+    background:linear-gradient(135deg,var(--navy-700),var(--blue-500));
+    color:#fff;
+    font-family:'Space Grotesk',sans-serif;
+    font-size:15.5px;
+    font-weight:600;
+    letter-spacing:.01em;
+    cursor:pointer;
+    box-shadow: 0 10px 24px var(--blue-glow), inset 0 1px 0 rgba(255,255,255,.25);
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    transition:transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+  }
+  .action-btn:active{transform:translateY(1px) scale(.99);}
+  .action-btn:disabled{opacity:.6; cursor:not-allowed;}
+  .spinner{
+    width:18px; height:18px;
+    border-radius:50%;
+    border:2.5px solid rgba(255,255,255,.35);
+    border-top-color:#fff;
+    animation:spin .7s linear infinite;
+    display:none;
+  }
+  .action-btn.loading .spinner{display:inline-block;}
+  .action-btn.loading .btn-label{display:none;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .progress-track{
+    width:100%; height:6px;
+    background:var(--bg);
+    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    border-radius:999px;
+    margin-top:16px;
+    overflow:hidden;
+    display:none;
+  }
+  .progress-track.active{display:block;}
+  .progress-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,var(--navy-700),var(--blue-500));
+    border-radius:999px;
+    transition:width .15s ease;
+  }
+
+  /* ---------- Result / Ticket ---------- */
+  .ticket{
+    margin-top:24px;
+    display:none;
+    position:relative;
+    background:linear-gradient(160deg,#ffffff,#eef3fb);
+    border-radius:var(--radius-md);
+    padding:22px 20px;
+    box-shadow: 10px 10px 24px var(--shadow-dark), -8px -8px 20px var(--shadow-light);
+    animation:rise .35s ease;
+  }
+  .ticket.active{display:block;}
+  @keyframes rise{from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);}}
+  .ticket::before,.ticket::after{
+    content:'';
+    position:absolute;
+    width:20px; height:20px;
+    background:var(--bg-2);
+    border-radius:50%;
+    top:50%; transform:translateY(-50%);
+    box-shadow: inset 2px 2px 4px var(--shadow-dark);
+  }
+  .ticket::before{left:-10px;}
+  .ticket::after{right:-10px;}
+  .ticket-status{
+    display:flex; align-items:center; gap:8px;
+    font-size:13px; font-weight:600; color:var(--success);
+    margin-bottom:12px;
+  }
+  .ticket-status svg{width:16px; height:16px; stroke:var(--success);}
+  .ticket-divider{
+    border:none;
+    border-top:2px dashed var(--shadow-dark);
+    margin:14px 0;
+  }
+  .ticket-url-row{
+    display:flex; align-items:center; gap:10px;
+    background:var(--bg);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+  }
+  .ticket-url{
+    flex:1; min-width:0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    color:var(--navy-900);
+    white-space:nowrap;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .ticket-url::-webkit-scrollbar{display:none;}
+  .copy-btn{
+    flex-shrink:0;
+    border:none;
+    background:linear-gradient(135deg,var(--navy-700),var(--blue-500));
+    color:#fff;
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:9px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .copy-btn svg{width:13px; height:13px; stroke:#fff;}
+  .ticket-meta{
+    display:flex; justify-content:space-between;
+    margin-top:12px;
+    font-size:11.5px;
+    color:var(--text-muted);
+  }
+  .ticket-meta b{color:var(--navy-950);}
+
+  .error-msg{
+    display:none;
+    margin-top:16px;
+    font-size:13px;
+    color:#b3261e;
+    background:rgba(179,38,30,.08);
+    padding:12px 14px;
+    border-radius:var(--radius-sm);
+    font-weight:500;
+  }
+  .error-msg.active{display:block;}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;
+    bottom:104px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--navy-950);
+    color:#fff;
+    font-size:13px;
+    font-weight:600;
+    padding:12px 20px;
+    border-radius:999px;
+    box-shadow:0 12px 30px rgba(7,22,52,.35);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+    z-index:50;
+    display:flex; align-items:center; gap:8px;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .toast svg{width:14px; height:14px; stroke:#4ade80;}
+
+  /* ---------- Bottom Nav ---------- */
+  .bottom-nav{
+    position:fixed;
+    bottom:18px; left:50%;
+    transform:translateX(-50%);
+    width:calc(100% - 36px);
+    max-width:520px;
+    background:rgba(255,255,255,.6);
+    backdrop-filter:blur(18px) saturate(160%);
+    -webkit-backdrop-filter:blur(18px) saturate(160%);
+    border:1px solid rgba(255,255,255,.7);
+    border-radius:22px;
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+    gap:6px;
+    box-shadow: 0 16px 36px rgba(11,27,51,.14);
+    z-index:40;
+  }
+  .nav-item{
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    text-decoration:none;
+    padding:8px 4px;
+    border-radius:14px;
+    color:var(--text-muted);
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-item:hover{background:rgba(47,95,255,.08); color:var(--navy-700);}
+  .nav-item svg{width:19px; height:19px; stroke:currentColor;}
+  .nav-item span{font-size:10px; font-weight:600; letter-spacing:.01em;}
+
+  footer.brand{
+    margin-top:24px;
+    font-size:11.5px;
+    color:var(--text-muted);
+    text-align:center;
+  }
+
+  @media (max-width:400px){
+    .card{padding:20px;}
+    .slot{padding:30px 14px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <button class="back-btn" onclick="window.location.href='/'" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    <div>
+      <div class="topbar-title">Sticker to URL</div>
+      <div class="topbar-sub">Linkify · permanent hosting</div>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>Sticker → URL</div>
+    <h1>Turn any sticker into a <span>shareable link.</span></h1>
+    <p>Drop a transparent PNG or WEBP sticker — get a permanent URL in seconds.</p>
+  </div>
+
+  <div class="card">
+    <label class="slot" id="dropZone">
+      <input type="file" id="fileInput" accept="image/png, image/webp, .webp, .png">
+      <div id="slotEmpty">
+        <div class="slot-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"><path d="M12 3a9 9 0 1 0 9 9c0-1 0-3-2-3h-4a3 3 0 0 1-3-3V5c0-1-1-2 0-2z"/></svg></div>
+        <h3>Drop your sticker here</h3>
+        <p>or tap to browse · PNG, WEBP</p>
+      </div>
+      <div class="preview-wrap" id="previewWrap">
+        <div id="previewVisual"></div>
+        <div class="preview-info">
+          <div class="preview-name" id="previewName">—</div>
+          <div class="preview-size" id="previewSize">—</div>
+        </div>
+        <button type="button" class="preview-clear" id="clearBtn" aria-label="Remove file">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </label>
+
+    <button class="action-btn" id="actionBtn" disabled>
+      <div class="spinner"></div>
+      <span class="btn-label">Get Link</span>
+    </button>
+
+    <div class="progress-track" id="progressTrack"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="ticket" id="ticket">
+      <div class="ticket-status">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        Link ready
+      </div>
+      <div class="ticket-url-row">
+        <div class="ticket-url" id="resultUrl">—</div>
+        <button class="copy-btn" id="copyBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          Copy
+        </button>
+      </div>
+      <hr class="ticket-divider">
+      <div class="ticket-meta">
+        <span>Format <b id="metaFormat">—</b></span>
+        <span>Size <b id="metaSize">—</b></span>
+        <span>Type <b id="metaType">Sticker</b></span>
+      </div>
+    </div>
+  </div>
+
+  <footer class="brand">Linkify · powered by Cloudinary</footer>
+
+  <nav class="bottom-nav" id="bottomNav"></nav>
+
+  <div class="toast" id="toast">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+    Copied!
+  </div>
+
+<script>
+(function(){
+  // ---------- Cloudinary config ----------
+  const CLOUD_NAME = 'wdhnno7y';
+  const UPLOAD_PRESET = 'linkify_unsigned';
+  const RESOURCE_TYPE = 'image'; // image | video | raw  (audio uses "video")
+  const DEFAULT_EXT = 'png';
+  const PREVIEW_MODE = 'image'; // image | video | audio | file
+  const ACTIVE_KEY = 'sticker';
+
+  // ---------- Bottom nav (shows every OTHER page) ----------
+  const PAGES = [
+    { key:'img',     label:'Image',    path:'/img',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>' },
+    { key:'video',   label:'Video',    path:'/video',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 9l5-3v12l-5-3"/></svg>' },
+    { key:'audio',   label:'Audio',    path:'/audio',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' },
+    { key:'sticker', label:'Sticker',  path:'/sticker',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9c0-1 0-3-2-3h-4a3 3 0 0 1-3-3V5c0-1-1-2 0-2z"/></svg>' },
+    { key:'doc',     label:'Document', path:'/doc',
+      icon:'<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>' }
+  ];
+  const navEl = document.getElementById('bottomNav');
+  PAGES.filter(p => p.key !== ACTIVE_KEY).forEach(p=>{
+    const a = document.createElement('a');
+    a.href = p.path;
+    a.className = 'nav-item';
+    a.innerHTML = p.icon + '<span>'+p.label+'</span>';
+    navEl.appendChild(a);
+  });
+
+  // ---------- Elements ----------
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const slotEmpty = document.getElementById('slotEmpty');
+  const previewWrap = document.getElementById('previewWrap');
+  const previewVisual = document.getElementById('previewVisual');
+  const previewName = document.getElementById('previewName');
+  const previewSize = document.getElementById('previewSize');
+  const clearBtn = document.getElementById('clearBtn');
+  const actionBtn = document.getElementById('actionBtn');
+  const progressTrack = document.getElementById('progressTrack');
+  const progressFill = document.getElementById('progressFill');
+  const errorMsg = document.getElementById('errorMsg');
+  const ticket = document.getElementById('ticket');
+  const resultUrl = document.getElementById('resultUrl');
+  const copyBtn = document.getElementById('copyBtn');
+  const metaFormat = document.getElementById('metaFormat');
+  const metaSize = document.getElementById('metaSize');
+  const toast = document.getElementById('toast');
+
+  let currentFile = null;
+
+  function formatBytes(bytes){
+    if(!bytes) return '0 B';
+    const units=['B','KB','MB','GB'];
+    let i=0, val=bytes;
+    while(val>=1024 && i<units.length-1){val/=1024; i++;}
+    return val.toFixed(val<10 && i>0?1:0)+' '+units[i];
+  }
+
+  function resetTicket(){
+    ticket.classList.remove('active');
+    errorMsg.classList.remove('active');
+    errorMsg.textContent='';
+  }
+
+  function setFile(file){
+    if(!file) return;
+    currentFile = file;
+    resetTicket();
+    slotEmpty.style.display='none';
+    previewWrap.classList.add('active');
+    previewName.textContent = file.name;
+    previewSize.textContent = formatBytes(file.size);
+    previewVisual.innerHTML = '';
+
+    if(PREVIEW_MODE==='image'){
+      const img = document.createElement('img');
+      img.className='preview-thumb';
+      img.src = URL.createObjectURL(file);
+      previewVisual.appendChild(img);
+    } else if(PREVIEW_MODE==='video'){
+      const vid = document.createElement('video');
+      vid.className='preview-thumb';
+      vid.muted = true;
+      vid.src = URL.createObjectURL(file);
+      previewVisual.appendChild(vid);
+    } else if(PREVIEW_MODE==='audio'){
+      const box = document.createElement('div');
+      box.className='preview-icon-box';
+      box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+      previewVisual.appendChild(box);
+    } else {
+      const box = document.createElement('div');
+      box.className='preview-icon-box';
+      box.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>';
+      previewVisual.appendChild(box);
+    }
+    actionBtn.disabled = false;
+  }
+
+  function clearFile(e){
+    e && e.preventDefault();
+    e && e.stopPropagation();
+    currentFile = null;
+    fileInput.value = '';
+    slotEmpty.style.display='flex';
+    previewWrap.classList.remove('active');
+    actionBtn.disabled = true;
+    resetTicket();
+  }
+
+  fileInput.addEventListener('change', ()=> setFile(fileInput.files[0]));
+  clearBtn.addEventListener('click', clearFile);
+
+  ['dragover','dragenter'].forEach(evt=>{
+    dropZone.addEventListener(evt, e=>{ e.preventDefault(); dropZone.classList.add('drag-over'); });
+  });
+  ['dragleave','drop'].forEach(evt=>{
+    dropZone.addEventListener(evt, e=>{ e.preventDefault(); dropZone.classList.remove('drag-over'); });
+  });
+  dropZone.addEventListener('drop', e=>{
+    const file = e.dataTransfer.files[0];
+    if(file){ fileInput.files = e.dataTransfer.files; setFile(file); }
+  });
+
+  function resolveExtension(file, data){
+    if(data && data.format) return String(data.format).toLowerCase();
+    const parts = file.name.split('.');
+    if(parts.length>1) return parts.pop().toLowerCase();
+    return DEFAULT_EXT;
+  }
+
+  function buildCleanUrl(data, file){
+    const ext = resolveExtension(file, data);
+    const base = data.secure_url.replace(/\.[a-zA-Z0-9]+(\?.*)?$/, '');
+    return base + '.' + ext;
+  }
+
+  function uploadToCloudinary(file){
+    return new Promise((resolve, reject)=>{
+      const url = 'https://api.cloudinary.com/v1_1/'+CLOUD_NAME+'/'+RESOURCE_TYPE+'/upload';
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', url);
+
+      xhr.upload.onprogress = (e)=>{
+        if(e.lengthComputable){
+          const pct = Math.round((e.loaded / e.total) * 100);
+          progressFill.style.width = pct + '%';
+        }
+      };
+      xhr.onload = ()=>{
+        try{
+          const data = JSON.parse(xhr.responseText);
+          if(xhr.status >= 200 && xhr.status < 300){
+            resolve(data);
+          } else {
+            reject(new Error((data.error && data.error.message) || 'Upload failed. Please try again.'));
+          }
+        }catch(err){
+          reject(new Error('Unexpected response from server.'));
+        }
+      };
+      xhr.onerror = ()=> reject(new Error('Network error — check your connection and try again.'));
+      xhr.send(formData);
+    });
+  }
+
+  actionBtn.addEventListener('click', async ()=>{
+    if(!currentFile) return;
+    resetTicket();
+    actionBtn.disabled = true;
+    actionBtn.classList.add('loading');
+    progressTrack.classList.add('active');
+    progressFill.style.width = '0%';
+
+    try{
+      const data = await uploadToCloudinary(currentFile);
+      const cleanUrl = buildCleanUrl(data, currentFile);
+      resultUrl.textContent = cleanUrl;
+      metaFormat.textContent = resolveExtension(currentFile, data).toUpperCase();
+      metaSize.textContent = formatBytes(data.bytes || currentFile.size);
+      ticket.classList.add('active');
+      copyBtn.dataset.url = cleanUrl;
+    }catch(err){
+      errorMsg.textContent = err.message || 'Something went wrong. Please try again.';
+      errorMsg.classList.add('active');
+    }finally{
+      actionBtn.classList.remove('loading');
+      actionBtn.disabled = false;
+      progressTrack.classList.remove('active');
+    }
+  });
+
+  copyBtn.addEventListener('click', ()=>{
+    const url = copyBtn.dataset.url || resultUrl.textContent;
+    if(!url || url==='—') return;
+    navigator.clipboard.writeText(url).then(()=>{
+      toast.classList.add('show');
+      setTimeout(()=> toast.classList.remove('show'), 1800);
+    });
+  });
+})();
+</script>
+</body>
+</html>

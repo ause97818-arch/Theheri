@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linkify — File to URL Converter</title>
+<meta name="description" content="Convert images, videos, audio, stickers and documents into permanent shareable URLs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#e9f0fa; --bg-2:#f4f8fd;
+    --navy-950:#071634; --navy-900:#0b3d91; --navy-700:#134fb8;
+    --blue-500:#2f5fff; --blue-glow:rgba(47,95,255,.32);
+    --shadow-light:#ffffff; --shadow-dark:#c3d1e6;
+    --text-primary:#0b1b33; --text-muted:#5c6b85;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:linear-gradient(160deg,var(--bg) 0%,var(--bg-2) 100%);
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex; flex-direction:column; align-items:center;
+    padding:60px 20px;
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--navy-700); background:rgba(47,95,255,.08);
+    padding:6px 14px; border-radius:999px; margin-bottom:18px;
+  }
+  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--blue-500); box-shadow:0 0 8px var(--blue-glow);}
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:clamp(32px,6vw,46px);
+    font-weight:700; letter-spacing:-.02em; text-align:center;
+    color:var(--navy-950);
+  }
+  h1 span{color:var(--blue-500);}
+  p.sub{margin-top:12px; color:var(--text-muted); font-size:15px; text-align:center; max-width:440px;}
+  .grid{
+    margin-top:44px; width:100%; max-width:560px;
+    display:grid; grid-template-columns:1fr 1fr; gap:16px;
+  }
+  .grid a.card{
+    grid-column:span 1;
+    text-decoration:none; color:var(--text-primary);
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(18px) saturate(160%);
+    border:1px solid rgba(255,255,255,.6);
+    border-radius:22px;
+    padding:22px 18px;
+    box-shadow: 12px 12px 28px rgba(11,27,51,.10), -10px -10px 24px rgba(255,255,255,.75);
+    display:flex; flex-direction:column; gap:12px;
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .grid a.card:hover{ transform:translateY(-3px); box-shadow:16px 16px 34px rgba(11,27,51,.14), -10px -10px 24px rgba(255,255,255,.8); }
+  .grid a.card:nth-child(5){ grid-column:span 2; flex-direction:row; align-items:center; }
+  .card-icon{
+    width:44px; height:44px; border-radius:14px;
+    background:var(--bg);
+    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .card-icon svg{width:20px; height:20px; stroke:var(--navy-700);}
+  .card-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15.5px;}
+  .card-desc{font-size:12.5px; color:var(--text-muted);}
+  footer{margin-top:48px; font-size:12px; color:var(--text-muted);}
+</style>
+</head>
+<body>
+  <div class="eyebrow"><span class="dot"></span>Powered by Cloudinary</div>
+  <h1>Any file. One <span>permanent link.</span></h1>
+  <p class="sub">Linkify converts images, videos, audio, stickers and documents into clean, shareable URLs — instantly.</p>
+
+  <div class="grid">
+    <a class="card" href="/img">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg></div>
+      <div><div class="card-title">Image</div><div class="card-desc">JPG, PNG, WEBP, GIF</div></div>
+    </a>
+    <a class="card" href="/video">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 9l5-3v12l-5-3"/></svg></div>
+      <div><div class="card-title">Video</div><div class="card-desc">MP4, MOV, WEBM</div></div>
+    </a>
+    <a class="card" href="/audio">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+      <div><div class="card-title">Audio</div><div class="card-desc">MP3, WAV, M4A</div></div>
+    </a>
+    <a class="card" href="/sticker">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9c0-1 0-3-2-3h-4a3 3 0 0 1-3-3V5c0-1-1-2 0-2z"/></svg></div>
+      <div><div class="card-title">Sticker</div><div class="card-desc">PNG, WEBP</div></div>
+    </a>
+    <a class="card" href="/doc">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></div>
+      <div><div class="card-title">Document</div><div class="card-desc">PDF, DOCX, XLSX, PPTX, ZIP</div></div>
+    </a>
+  </div>
+
+  <footer>Linkify — file-to-URL, made simple.</footer>
+</body>
+</html>
