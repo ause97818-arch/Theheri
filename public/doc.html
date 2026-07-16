@@ -645,8 +645,17 @@
     // (no cloud name, no "/upload", no version number). We serve it back
     // through OUR OWN domain via a worker route that proxies Cloudinary
     // behind the scenes — so the visible link never shows Cloudinary at all.
+    //
+    // IMPORTANT: for "raw" uploads (documents), Cloudinary's public_id
+    // already includes the file extension (e.g. "abc123.pdf"), unlike
+    // image/video where the extension is kept separate. Appending the
+    // extension again would produce a broken double-extension link
+    // like "abc123.pdf.pdf", so we only append it if it isn't already there.
     const publicId = data.public_id;
-    return window.location.origin + '/' + BRAND_PREFIX + '/' + publicId + '.' + ext;
+    const suffix = '.' + ext;
+    const alreadyHasExt = publicId.toLowerCase().endsWith(suffix.toLowerCase());
+    const finalPath = alreadyHasExt ? publicId : (publicId + suffix);
+    return window.location.origin + '/' + BRAND_PREFIX + '/' + finalPath;
   }
 
   function uploadToCloudinary(file){
