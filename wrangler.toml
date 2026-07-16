@@ -1,0 +1,11 @@
+name = "imgtourl"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Static HTML/CSS/JS files (index.html, img.html, video.html, audio.html,
+# sticker.html, doc.html, etc.) live in /public and are served through
+# the ASSETS binding below. When connected via GitHub integration,
+# Cloudflare builds and deploys automatically on every push to main.
+[assets]
+directory = "./public"
+binding = "ASSETS"
